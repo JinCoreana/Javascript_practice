@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word-chain</title>
+</head>
+
+<body>
+    <div>Competitor no.<span id="order">1</span></div>
+    <div>Given word <span id="word"></span></div>
+    <input type="text" />
+    <button>Submit</button>
+</body>
+<script>
+    const number = Number(prompt('How many people are participating?'))
+    const $button = document.querySelector('button');
+    const $input = document.querySelector('input');
+    const $word = document.querySelector('#word')
+    const $order = document.querySelector('#order')
+    let word;
+    let newWord;
+    const onClickButton = () => {
+        if (!word || word[word.length - 1] === newWord[0]) {
+            word = newWord;
+            $word.textContent = word;
+            const order = parseInt($order.textContent)
+            if (order + 1 > number) { $order.textContent = 1; }
+            else { $order.textContent = order + 1; }
+
+        }
+        else {
+            alert('It is wrong')
+        }
+        $input.value = '';
+        $input.focus();
+
+    }
+
+    const onInput = (e) => {
+        newWord = e.target.value;
+
+    }
+    $button.addEventListener('click', onClickButton);
+    $input.addEventListener('input', onInput);
+</script>
+
+</html>
