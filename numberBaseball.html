@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Baseball</title>
+</head>
+
+<body>
+    <form id="form">
+        <input type="text" id="input" />
+        <button>Check</button>
+    </form>
+    <div id="logs"></div>
+    <script>
+        const $form = document.querySelector('#form')
+        const $input = document.querySelector('#input')
+        const $logs = document.querySelector('#logs')
+
+        const numbers = [];
+
+
+        for (let i = 0; i < 9; i += 1) {
+            numbers.push(i + 1)
+            console.log(numbers)
+        }
+
+        const answer = [];
+        for (let n = 0; n < 4; n += 1) {
+            const randomIdx = Math.floor(Math.random() * numbers.length)
+            console.log(randomIdx)
+            answer.push(numbers[randomIdx])
+            numbers.splice(randomIdx, 1)
+            console.log(answer)
+        }
+
+        let out = 0;
+        $form.addEventListener('submit', (e) => {
+            e.preventDefault()
+            const value = $input.value
+            $input.value = ''
+            if (!checkInput(value)) return;
+            if (answer.join('') === value) { $logs.textContent = 'Home Run!' }
+            else if (tries.length >= 9) {
+                const message = document.createTextNode(`You lost! The answer is ${answer.join('')}`)
+                $logs.appendChild(message);
+                return;
+            }
+            let ball = 0;
+            let strike = 0;
+
+            let i = 0;
+            while (i < answer.length) {
+                const index = value.indexOf(answer[i])
+                if (index > -1) {
+                    if (index === i) {
+                        strike += 1
+                    }
+                    else {
+                        ball += 1
+                    }
+                }
+                i++;
+
+
+                // ForEach practice
+
+                // answer.forEach((element, i) => {
+                //     const index = value.indexOf(element)
+                //     if (index > -1) {
+                //         if (index === i) {
+                //             strike += 1
+                //         }
+                //         else {
+                //             ball += 1
+                //         }
+                //     })
+            }
+
+            if (strike === 0 && ball === 0) {
+                out++;
+                $logs.append(`${value}: ${out} Out`)
+                console.log(out)
+            }
+            else {
+                $logs.append(`${value}: ${ball} Ball & ${strike} Strike !`, document.createElement('br'))
+            }
+            if (out === 3) {
+                $logs.append(`3 OUTs!! The answer is ${answer.join('')}`, document.createElement('br'))
+                return
+            }
+            tries.push(value)
+        }
+        )
+
+        const tries = []
+        function checkInput(value) {
+            if (value.length !== 4) {
+                return alert('4 Digits are required')
+            }
+            if (new Set(value).size !== 4) {
+                return alert('You can not duplicate numbers')
+            }
+            if (tries.includes(value)) {
+                return alert('You tried these numbers before')
+            }
+            return true
+
+            // let i = 0
+            // while (i < answer.length) {
+            //     if (value[i] === answer[i]) { tries.push('strike') }
+            //     if (value[i] !== answer[i]) { tries.push('ball') }
+            //     console.log(tries)
+        }
+
+
+
+    </script>
+
+
+</body>
+
+</html>
