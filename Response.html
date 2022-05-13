@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Response</title>
+    <style>
+        #screen {
+            width: 300px;
+            height: 200px;
+            text-align: center;
+            user-select: none;
+        }
+
+        #screen.waiting {
+            background-color: aqua;
+        }
+
+        #screen.ready {
+            background-color: red;
+        }
+
+        #screen.now {
+            background-color: greenyellow;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="screen" class="waiting">Click to start</div>
+    <div id="result"></div>
+    <script>
+        const $screen = document.querySelector('#screen')
+        const $result = document.querySelector('#result')
+        let go
+        let end
+        const avg = []
+        let timer
+        let sum = 0
+
+        const onClick = (e) => {
+            if (e.target.classList.contains('waiting')) {
+                $screen.classList.remove('waiting')
+                $screen.classList.add('ready')
+                $screen.textContent = 'Get ready'
+                timer = setTimeout(() => {
+                    go = new Date()
+                    $screen.classList.remove('ready')
+                    $screen.classList.add('now')
+                    $screen.textContent = 'Click Now!'
+                }, Math.floor(Math.random() * 1000) + 2000)
+                // 2~3초사이 0<i<1
+            }
+            else if (e.target.classList.contains('ready')) {
+                alert('Too Fast!')
+                clearTimeout(timer)
+                $screen.classList.remove('ready')
+                $screen.classList.add('waiting')
+            }
+
+            else if (e.target.classList.contains('now')) {
+                clearTimeout(timer)
+                end = new Date()
+                avg.push(end - go)
+                const avgSum = Math.round(avg.reduce((a, c) => a + c) / avg.length)
+                $screen.classList.remove('now')
+                $screen.classList.add('waiting')
+                $screen.textContent = 'Great! Try again'
+                $result.textContent = `You responded in ${end - go}ms & Average ${avgSum}ms.`
+                const fastFive = avg.sort((a, b) => a - b).slice(0, 5);
+                fastFive.forEach((ele, i) => {
+                    $result.append(
+                        document.createElement('br'),
+                        `No.${i + 1} : ${ele}ms`,
+                    )
+                })
+            }
+        }
+        $screen.addEventListener('click', onClick)
+        console.log(avg)
+
+
+
+    </script>
+
+</body>
+
+
+</html>
