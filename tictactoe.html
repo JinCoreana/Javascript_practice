@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tictactoe</title>
+    <style>
+        table {
+            border-collapse: collapse
+        }
+
+        tr {
+            border: 1px solid black;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+        }
+
+        td {
+            border: 1px solid black;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <script>
+
+        let turn = 'O'
+        const rows = [];
+        const $table = document.createElement('table')
+        const $result = document.createElement('div')
+
+        const winner = (target) => {
+            const rowIndex = target.parentNode.rowIndex
+            const cellIndex = target.cellIndex
+
+
+            // let rowIndex
+            // let cellIndex
+            // rows.forEach((row, ri) => {
+            //     row.forEach((cell, ci) => {
+            //         if (cell === target) {
+            //             rowIndex = ri
+            //             cellIndex = ci
+            //         }
+            //     })
+            // })
+            let hasWinner = false
+            if (rows[0][cellIndex].textContent === turn &&
+                rows[1][cellIndex].textContent === turn
+                && rows[2][cellIndex].textContent === turn) hasWinner = true
+
+            if (rows[rowIndex][0].textContent === turn
+                && rows[rowIndex][1].textContent === turn
+                && rows[rowIndex][2].textContent === turn
+            ) { hasWinner = true }
+            if (rows[0][0].textContent === turn &&
+                rows[1][1].textContent === turn &&
+                rows[2][2].textContent === turn) { hasWinner = true }
+            if (rows[2][0].textContent === turn &&
+                rows[1][1].textContent === turn &&
+                rows[0][2].textContent === turn) { hasWinner = true }
+            return hasWinner
+        }
+
+        const checkWinner = (target) => {
+            if (winner(target)) {
+                $result.textContent = `${turn} has won!`
+                $table.removeEventListener('click', callback)
+                return
+            }
+            //무승부
+            const draw = rows.flat().every((cell) => cell.textContent)
+            if (draw) {
+                $result.textContent = 'DRAW'
+                return
+            }
+            // let drawCount = 0
+            // rows.forEach((row) => {
+            //     row.forEach((cell) => {
+            //         if (cell.textContent) {
+            //             drawCount += 1
+            //         }
+            //     })
+            // })
+            // drawCount === 9 ? $result.textContent = 'DRAW' : null
+            turn = turn === 'X' ? 'O' : 'X';
+        }
+        let clickable = true;
+        const callback = (event) => {
+            if (!clickable) return
+            if (event.target.textContent) {
+                alert('click empty slots')
+                return
+            }
+            event.target.textContent = turn
+            checkWinner(event.target)
+
+            if (turn === 'X') {
+                clickable = false
+                const empty = rows.flat().filter((v) => !v.textContent)
+
+                const random = empty[Math.floor(Math.random() * empty.length)]
+                setTimeout(() => {
+                    random.textContent = turn
+                    clickable = true
+                    checkWinner(random)
+                }, 500);
+
+
+
+            }
+        }
+
+
+        for (let i = 0; i < 3; i++) {
+            const $tr = document.createElement('tr')
+
+            const cells = []
+            for (let j = 0; j < 3; j++) {
+                const $td = document.createElement('td')
+                cells.push($td)
+                $tr.append($td)
+
+                // $td.addEventListener('click', callback)
+            }
+            rows.push(cells)
+            $table.append($tr)
+        }
+        $table.addEventListener('click', callback)
+        document.body.append($table)
+        document.body.append($result)
+    </script>
+</body>
+
+</html>
