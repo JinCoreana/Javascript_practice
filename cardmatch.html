@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Card Match </title>
+    <style>
+        .card {
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 20px;
+            width: 70px;
+            height: 100px;
+            perspective: 140px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front {
+            background: navy;
+        }
+
+        .card-front,
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 1px solid black;
+            backface-visibility: hidden;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wrapper"></div>
+    <script>
+        const $wrapper = document.querySelector('#wrapper')
+        let cardNumber = parseInt(prompt('enter the number of card'))
+        const color = ['red', 'yellow', 'blue', 'green', 'purple', 'pink', 'cyan', 'magenta', 'black', 'gray']
+        let colorSlice = color.slice(0, cardNumber / 2)
+        let copyColor = colorSlice.concat(colorSlice)
+        let shuffle = []
+        let startTime
+        let endTime
+        let completed = []
+        let clicked = []
+        let clickable = false
+
+        function random() {
+            for (let i = 0; copyColor.length > 0; i++)
+                shuffle.push(copyColor.splice(copyColor[Math.floor(Math.random() * copyColor.length)], 1))
+            console.log(shuffle)
+        }
+
+        function createCard(i) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            const cardInner = document.createElement('div');
+            cardInner.className = 'card-inner';
+            const cardFront = document.createElement('div');
+            cardFront.className = 'card-front';
+            const cardBack = document.createElement('div');
+            cardBack.className = 'card-back';
+            cardBack.style.backgroundColor = shuffle[i]
+            cardInner.appendChild(cardFront)
+            cardInner.appendChild(cardBack)
+            card.appendChild(cardInner)
+            return card
+        }
+
+        function onClick() {
+            if (!clickable || completed.includes(this) || clicked.includes(this) || clicked.length === 2) return
+            clicked.push(this)
+            this.classList.toggle('flipped')
+
+            if (clicked.length !== 2) {
+                return; //이 부분이 없으면 값이 1개만 들어왓을때, clicked[1] undefined라 에러가 난다
+            }
+            console.log(clicked)
+            console.log(clicked[0].querySelector('.card-back').style.backgroundColor)
+            console.log(clicked[1].querySelector('.card-back').style.backgroundColor)
+            const firstBackColor = clicked[0].querySelector('.card-back').style.backgroundColor;
+            const secondBackColor = clicked[1].querySelector('.card-back').style.backgroundColor;
+            if (firstBackColor === secondBackColor) {
+                completed = completed.concat(clicked)
+                clicked = [];
+                if (completed.length !== cardNumber) {
+                    return;
+                }
+                setTimeout(() => {
+                    endTime = new Date
+                    alert(`Won! Congratulations. You spent ${(endTime - startTime) * 0.001}sec`);
+                    resetGame();
+                }, 1000);
+                return;
+
+            }
+            else {
+                setTimeout(() => {
+                    clicked[0].classList.remove('flipped');
+                    clicked[1].classList.remove('flipped');
+                    clicked = [];
+                    spentTime
+                }, 500);
+            }
+        }
+
+        function gameStart() {
+            random()
+            clickable = false
+            for (let i = 0; i < cardNumber; i++) {
+                const cards = createCard(i)
+                cards.addEventListener('click', onClick)
+                $wrapper.appendChild(cards)
+            }
+
+            document.querySelectorAll('.card').forEach((card, i) => {
+                setTimeout(() => {
+                    card.classList.add('flipped')
+                }, 1000 + 200 * i)
+
+                setTimeout(() => {
+                    card.classList.remove('flipped')
+                    clickable = true
+                    startTime = new Date
+                }, 4000)
+                    ;
+
+            })
+
+        } gameStart()
+
+
+        function resetGame() {
+            $wrapper.innerHTML = ''
+            shuffle = []
+            completed = []
+            clicked = []
+            copyColor = color.concat(color)
+            gameStart();
+        }
+    </script>
+</body>
+
+</html>
