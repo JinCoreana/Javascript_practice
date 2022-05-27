@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mine Sweeper</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        td {
+            border: 1px solid black;
+            text-align: center;
+            line-height: 20px;
+            width: 20px;
+            height: 20px;
+            background: grey;
+        }
+
+        td.open {
+            background: white
+        }
+
+        td.flag {
+            background: orange
+        }
+
+        td.question {
+            background: lime
+        }
+    </style>
+</head>
+
+<body>
+    <form id="form">
+        <input id="row" placeholder="Row" type="text" size="4">
+        <input id="col" placeholder="Col" type="text" size="4">
+        <input id="mines" placeholder="Mines" type="text" size="4">
+        <button id="submit">Start</button>
+    </form>
+
+    <div id="timer">Ready?</div>
+    <table id="table">
+        <tbody></tbody>
+    </table>
+    <script>
+        const $form = document.querySelector('#form')
+        const $timer = document.querySelector('#timer')
+        const $table = document.querySelector('#table')
+        const $tbody = document.querySelector('tbody')
+        let data
+        let row
+        let col
+        let mines
+        let openCount = 0
+        let startTime
+        let timer
+        //set up index of each element
+        const index = {
+            'OPEN': 0,
+            'MINE': -1,
+            'NO_MINE': 1,
+            'QUESTION': -2,
+            'FLAG': -3,
+            'MINE_QUESTION': -4,
+            'MINE_FLAG': -5,
+        }
+
+        //make double array
+        document.querySelector('#submit').addEventListener('click', start)
+
+
+
+        function start(e) {
+            e.preventDefault();
+            row = parseInt(document.querySelector('#row').value)
+            col = parseInt(document.querySelector('#col').value)
+            mines = parseInt(document.querySelector('#mines').value)
+            const total = col * row
+            data = []
+            for (let i = 0; i < row; i++) {
+                data[i] = new Array(col).fill(index.NO_MINE)
+            }
+            $tbody.innerHTML = '';
+            drawTable()
+            console.log(data)
+            interval = setInterval(() => {
+                const time = Math.floor((new Date() - startTime) / 1000)
+                $timer.textContent = `${time}sec`
+            })
+        }
+
+        //draw table
+        function plantMine() {
+            for (let i = 0; i < mines; i++) {
+                data[Math.floor(Math.floor(Math.random() * row))][Math.floor(Math.floor(Math.random() * col))] = index.MINE
+            }
+            return data
+
+        }
+        function reset() {
+            data = null
+            row = 0
+            col = 0
+            mines = 0
+            openCount = 0
+            startTime
+            timer
+            start()
+        }
+
+        function countMine(rowIndex, cellIndex) {
+            const mines = [index.MINE, index.MINE_FLAG, index.MINE_QUESTION];
+            let i = 0;
+            mines.includes(data[rowIndex - 1]?.[cellIndex - 1]) && i++;
+            mines.includes(data[rowIndex - 1]?.[cellIndex]) && i++;
+            mines.includes(data[rowIndex - 1]?.[cellIndex + 1]) && i++;
+            mines.includes(data[rowIndex][cellIndex - 1]) && i++;
+            mines.includes(data[rowIndex][cellIndex + 1]) && i++;
+            mines.includes(data[rowIndex + 1]?.[cellIndex - 1]) && i++;
+            mines.includes(data[rowIndex + 1]?.[cellIndex]) && i++;
+            mines.includes(data[rowIndex + 1]?.[cellIndex + 1]) && i++;
+            return i;
+        }
+
+        function onLeftClick(e) {
+            e.preventDefault()
+            const target = e.target;
+            const rowIndex = target.parentNode.rowIndex;
+            const cellIndex = target.cellIndex;
+            let slot = data[rowIndex]?.[cellIndex]
+            console.log(slot)
+            if (openCount === 0) {
+                slot = index.OPEN
+                openSlot(rowIndex, cellIndex)
+                plantMine()
+            }
+            else {
+                console.log(slot)
+                if (slot === index.MINE) {
+                    clearInterval(interval)
+                    alert('You lost, try again!')
+                    reset()
+                }
+                else if (slot === index.NO_MINE) {
+                    openAround(rowIndex, cellIndex)
+                }
+            }
+
+            //win or loose
+
+        }
+
+        function onRightClick(event) {
+            event.preventDefault();
+            const target = event.target;
+            const rowIndex = target.parentNode.rowIndex;
+            const cellIndex = target.cellIndex;
+            const cellData = data[rowIndex][cellIndex];
+            if (cellData === index.MINE) { // 지뢰면
+                data[rowIndex][cellIndex] = index.MINE_QUESTION; // 물음표 지뢰로
+                target.className = 'question';
+                target.textContent = '?';
+            } else if (cellData === index.MINE_QUESTION) { // 물음표 지뢰면
+                data[rowIndex][cellIndex] = index.MINE_FLAG; // 깃발 지뢰로
+                target.className = 'flag';
+                target.textContent = '!';
+            } else if (cellData === index.MINE_FLAG) { // 깃발 지뢰면
+                data[rowIndex][cellIndex] = index.MINE; // 지뢰로
+                target.className = '';
+                target.textContent = '';
+            } else if (cellData === index.NO_MINE) { // 닫힌 칸이면
+                data[rowIndex][cellIndex] = index.QUESTION; // 물음표로
+                target.className = 'question';
+                target.textContent = '?';
+            } else if (cellData === index.QUESTION) { // 물음표면
+                data[rowIndex][cellIndex] = index.FLAG; // 깃발으로
+                target.className = 'flag';
+                target.textContent = '!';
+            } else if (cellData === index.FLAG) { // 깃발이면
+                data[rowIndex][cellIndex] = index.NO_MINE; // 닫힌 칸으로
+                target.className = '';
+                target.textContent = '';
+            }
+        }
+
+
+
+        function openSlot(rowIndex, cellIndex) {
+            if (data[rowIndex]?.[cellIndex] === index.OPEN) return;
+            const target = $tbody.children[rowIndex]?.children[cellIndex];
+            console.log(target)
+            if (!target) {
+                return;
+            }
+            const count = countMine(rowIndex, cellIndex);
+            target.textContent = count || '';
+            target.className = 'open';
+            openCount++;
+            data[rowIndex][cellIndex] = count;
+            console.log(`openCount = ${openCount}`);
+            if (openCount === row * col - mines) {
+                clearInterval(interval)
+                const time = (new Date() - startTime) / 1000;
+                $tbody.removeEventListener('contextmenu', onRightClick);
+                $tbody.removeEventListener('click', onLeftClick);
+                setTimeout(() => {
+                    alert(`You won! It took${time}sec`);
+                    reset()
+                }, 1000);
+
+            }
+            return count;
+        }
+
+        function openAround(rI, cI) {
+            setTimeout(() => {
+                const count = openSlot(rI, cI);
+                if (count === 0) {
+                    openAround(rI - 1, cI - 1)
+                    openAround(rI - 1, cI)
+                    openAround(rI - 1, cI + 1)
+                    openAround(rI, cI - 1)
+                    openAround(rI, cI + 1)
+                    openAround(rI + 1, cI - 1)
+                    openAround(rI + 1, cI)
+                    openAround(rI + 1, cI + 1)
+                }
+            }, 0);
+        }
+
+
+
+
+
+        function drawTable() {
+            const $td = document.createElement('td')
+            data.forEach((row) => {
+                const $tr = document.createElement('tr')
+                row.forEach((col) => {
+                    const $td = document.createElement('td')
+                    if (col === index.MINE) $td.textContent = 'X'
+                    $tr.append($td)
+                })
+
+                $tbody.append($tr)
+
+                $tbody.addEventListener('click', onLeftClick)
+                $tbody.addEventListener('contextmenu', onRightClick)
+
+                startTime = new Date()
+            })
+
+
+
+        }
+
+
+    </script>
+</body>
+
+</html>
