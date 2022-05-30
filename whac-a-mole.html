@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whac-A-Mole</title>
+    <style>
+      .fonts {
+        font-size: 50px;
+      }
+      .cell {
+        display: inline-block;
+        position: relative;
+        width: 200px;
+        height: 200px;
+        background: "yellow";
+        overflow: hidden;
+      }
+
+      .gopher,
+      .bomb {
+        width: 200px;
+        height: 200px;
+        bottom: 0;
+        position: absolute;
+        transition: bottom 1s;
+      }
+
+      .gopher {
+        background: url("./gopher.png") center center no-repeat;
+        background-size: 200px 200px;
+      }
+
+      .dead {
+        background: url("./dead_gopher.png") center center no-repeat;
+        background-size: 200px 200px;
+      }
+
+      .bomb {
+        background: url("./bomb.png") center center no-repeat;
+        background-size: 200px 200px;
+      }
+
+      .boom {
+        background: url("./explode.png") center center no-repeat;
+        background-size: 200px 200px;
+      }
+
+      .hidden {
+        bottom: -200px;
+      }
+
+      .hole {
+        width: 200px;
+        height: 150px;
+        position: absolute;
+        bottom: 0;
+        background: url("./mole-hole.png") center center no-repeat;
+        background-size: 200px 150px;
+      }
+
+      .hole-front {
+        width: 200px;
+        height: 30px;
+        position: absolute;
+        bottom: 0;
+        background: url("./mole-hole-front.png") center center no-repeat;
+        background-size: 200px 30px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="fonts">
+      <span id="timer"></span>sec&nbsp; <span id="score"></span>pt
+      <button id="start">Start</button>
+    </div>
+    <div id="game">
+      <div class="row">
+        <div class="cell">
+          <div class="hole"></div>
+          <div class="gopher hidden"></div>
+          <div class="bomb hidden"></div>
+          <div class="hole-front"></div>
+        </div>
+        <div class="cell">
+          <div class="hole"></div>
+          <div class="gopher hidden"></div>
+          <div class="bomb hidden"></div>
+          <div class="hole-front"></div>
+        </div>
+        <div class="cell">
+          <div class="hole"></div>
+          <div class="gopher hidden"></div>
+          <div class="bomb hidden"></div>
+          <div class="hole-front"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="cell">
+          <div class="hole"></div>
+          <div class="gopher hidden"></div>
+          <div class="bomb hidden"></div>
+          <div class="hole-front"></div>
+        </div>
+        <div class="cell">
+          <div class="hole"></div>
+          <div class="gopher hidden"></div>
+          <div class="bomb hidden"></div>
+          <div class="hole-front"></div>
+        </div>
+        <div class="cell">
+          <div class="hole"></div>
+          <div class="gopher hidden"></div>
+          <div class="bomb hidden"></div>
+          <div class="hole-front"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="cell">
+          <div class="hole"></div>
+          <div class="gopher hidden"></div>
+          <div class="bomb hidden"></div>
+          <div class="hole-front"></div>
+        </div>
+        <div class="cell">
+          <div class="hole"></div>
+          <div class="gopher hidden"></div>
+          <div class="bomb hidden"></div>
+          <div class="hole-front"></div>
+        </div>
+        <div class="cell">
+          <div class="hole"></div>
+          <div class="gopher hidden"></div>
+          <div class="bomb hidden"></div>
+          <div class="hole-front"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const $timer = document.querySelector("#timer");
+      const $score = document.querySelector("#score");
+      const $game = document.querySelector("#game");
+      const $start = document.querySelector("#start");
+      const $$cells = document.querySelectorAll(".cell");
+
+      const holes = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+      let started = false;
+      let score = 0;
+      let time = 60;
+      let life = 3;
+
+      $start.addEventListener("click", () => {
+        if (started) return;
+        started = true;
+        const timer = setInterval(() => {
+          time = (time * 10 - 1) / 10; // 소수점 계산은 에러가 나기때문에 10을 곱해서 정수로 만들어주고 다시 나눠줌
+          $timer.textContent = time;
+          if (time === 0) {
+            setTimeout(() => {
+              clearTimeout(timer);
+              clearTimeout(repeat);
+              reset();
+            }, 50);
+          }
+        }, 100);
+        const repeat = setInterval(start, 1000);
+        start();
+      });
+      //Random appear
+      let gopherRatio = 0.3;
+      let bombRatio = 0.5;
+      function start() {
+        holes.forEach((cell, i) => {
+          const randomValue = Math.random();
+          if (gopherRatio > randomValue) {
+            const gopher = $$cells[i].querySelector(".gopher");
+            if (cell) return;
+            holes[i] = setTimeout(() => {
+              gopher.classList.add("hidden");
+              holes[i] = 0;
+            }, 1000);
+            gopher.classList.remove("hidden");
+          }
+          //if 문은 누적이라 앞의 값 제외함
+          else if (bombRatio > randomValue) {
+            const bomb = $$cells[i].querySelector(".bomb");
+            if (cell) return;
+            holes[i] = setTimeout(() => {
+              bomb.classList.add("hidden");
+              holes[i] = 0;
+            }, 1000);
+            bomb.classList.remove("hidden");
+          }
+        });
+      }
+
+      $$cells.forEach((cell, i) => {
+        cell.querySelector(".gopher").addEventListener("click", (e) => {
+          if (e.target.classList.contains("hidden")) return;
+          score += 10;
+          $score.textContent = score;
+          console.log(score);
+          e.target.classList.add("dead");
+          e.target.classList.add("hidden");
+          clearTimeout(holes[i]);
+          setTimeout(() => {
+            e.target.classList.remove("dead");
+            holes[i] = 0;
+          }, 1000);
+        });
+        cell.querySelector(".bomb").addEventListener("click", (e) => {
+          if (e.target.classList.contains("hidden")) return;
+          if (life > 0) {
+            life--;
+            console.log(life);
+            e.target.classList.add("boom");
+            e.target.classList.add("hidden");
+            clearTimeout(holes[i]);
+            setTimeout(() => {
+              e.target.classList.remove("boom");
+              holes[i] = 0;
+            }, 1000);
+          } else reset();
+        });
+      });
+
+      function reset() {
+        alert("GAME OVER");
+        clearTimeout(hole[i]);
+      }
+
+      //cell은 배열을 참조하여 원시값을 반환할 뿐 참조관계가 없어서 대입불가
+      //cell = setTiemout 은 성립하지않음.
+
+      //Timer
+
+      //onClick event
+
+      //reset
+    </script>
+  </body>
+</html>
